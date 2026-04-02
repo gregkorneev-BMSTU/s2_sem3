@@ -7,8 +7,8 @@
 
 class Account {
 public:
-    Account(std::string number, std::string ownerName, double openingBalance);
-    virtual ~Account() = default;
+    Account(const std::string& number, const std::string& ownerName, double startBalance);
+    virtual ~Account() {}
 
     const std::string& getNumber() const;
     const std::string& getOwnerName() const;
@@ -16,24 +16,26 @@ public:
 
     virtual std::string getType() const = 0;
 
+    bool deposit(double amount, const std::string& comment = "Пополнение");
+    bool withdraw(double amount, const std::string& comment = "Снятие");
+
     bool canDebit(double amount) const;
-    bool deposit(double amount, const std::string& description = "Пополнение");
-    bool withdraw(double amount, const std::string& description = "Снятие");
+    bool chargeFee(double fee, const std::string& reason);
 
     bool transferOut(double amount, const std::string& toAccountNumber);
     void transferIn(double amount, const std::string& fromAccountNumber);
-    bool chargeFee(double fee, const std::string& reason);
 
     const std::vector<Transaction>& getHistory() const;
 
 protected:
     virtual bool canWithdraw(double amount) const;
-    void addTransaction(TransactionType type, double amount, const std::string& description);
+    void addTransaction(TransactionType type, double amount, const std::string& comment);
 
-    std::string accountNumber_;
+    std::string number_;
     std::string ownerName_;
     double balance_;
 
 private:
+    // Композиция: история операций живет вместе со счетом.
     std::vector<Transaction> history_;
 };

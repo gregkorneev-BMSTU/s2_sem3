@@ -4,11 +4,12 @@
 
 class CreditAccount : public Account {
 public:
-    CreditAccount(std::string number, std::string ownerName, double openingBalance, double creditLimit);
+    CreditAccount(const std::string& number,
+                  const std::string& ownerName,
+                  double startBalance,
+                  double creditLimit);
 
     std::string getType() const override;
-    double getCreditLimit() const;
-    double getAvailableFunds() const;
 
 protected:
     bool canWithdraw(double amount) const override;

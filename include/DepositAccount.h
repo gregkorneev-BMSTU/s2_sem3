@@ -4,13 +4,13 @@
 
 class DepositAccount : public Account {
 public:
-    DepositAccount(std::string number, std::string ownerName, double openingBalance, int termMonths);
+    DepositAccount(const std::string& number,
+                   const std::string& ownerName,
+                   double startBalance,
+                   int termMonths);
 
     std::string getType() const override;
-    int getTermMonths() const;
-    bool isLocked() const;
-
-    void unlockTerm();
+    void unlock();
 
 protected:
     bool canWithdraw(double amount) const override;

@@ -4,12 +4,14 @@
 
 class SavingsAccount : public Account {
 public:
-    SavingsAccount(std::string number, std::string ownerName, double openingBalance, double annualRatePercent);
+    SavingsAccount(const std::string& number,
+                   const std::string& ownerName,
+                   double startBalance,
+                   double annualRatePercent);
 
     std::string getType() const override;
-    double getAnnualRatePercent() const;
 
-    void accrueMonthlyInterest();
+    void addMonthlyInterest();
 
 private:
     double annualRatePercent_;

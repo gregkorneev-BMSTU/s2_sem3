@@ -6,16 +6,16 @@ class Account;
 
 class Card {
 public:
-    Card(std::string cardNumber, Account& linkedAccount);
+    Card(const std::string& cardNumber, Account& linkedAccount);
 
     const std::string& getCardNumber() const;
 
-    bool pay(double amount, const std::string& merchant);
+    bool pay(double amount, const std::string& shopName);
     bool cashWithdraw(double amount);
 
 private:
     std::string cardNumber_;
 
-    // Ассоциация: карта лишь ссылается на счет, не владеет им.
-    Account* linkedAccount_;
+    // Ассоциация: карта знает счет, но не владеет им.
+    Account* account_;
 };

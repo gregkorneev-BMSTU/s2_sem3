@@ -4,7 +4,7 @@
 
 class Department {
 public:
-    Department(std::string name, std::string address);
+    Department(const std::string& name, const std::string& address);
 
     const std::string& getName() const;
     const std::string& getAddress() const;

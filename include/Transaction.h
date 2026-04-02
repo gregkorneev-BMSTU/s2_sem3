@@ -12,25 +12,21 @@ enum class TransactionType {
 
 class Transaction {
 public:
-    Transaction(TransactionType type, double amount, std::string description);
+    Transaction(TransactionType type, double amount, const std::string& comment);
 
     int getId() const;
-    const std::string& getTimestamp() const;
     TransactionType getType() const;
     double getAmount() const;
-    const std::string& getDescription() const;
+    const std::string& getComment() const;
 
     std::string toString() const;
 
 private:
-    static std::string makeTimestamp();
     static std::string typeToString(TransactionType type);
 
     static int nextId_;
-
     int id_;
-    std::string timestamp_;
     TransactionType type_;
     double amount_;
-    std::string description_;
+    std::string comment_;
 };

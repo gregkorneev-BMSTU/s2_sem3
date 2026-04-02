@@ -1,11 +1,15 @@
 # Семинар 3. Вариант 15: **Банковская система**.
 
+Проект написан в максимально простом учебном стиле:
+- без `shared_ptr` и фабрик,
+- с понятными методами,
+- с прямой демонстрацией всех связей в `main.cpp`.
 
-## Реализованные классы
+## Классы
 - `Bank`
 - `Department`
 - `Client`
-- `Account` (базовый класс)
+- `Account` (базовый)
 - `SavingsAccount`
 - `CreditAccount`
 - `DepositAccount`
@@ -13,26 +17,14 @@
 - `Transaction`
 - `CommissionCalculator`
 
-## Где показаны отношения
+## Где показаны связи
 - **Наследование**: `Account -> SavingsAccount, CreditAccount, DepositAccount`.
-- **Ассоциация**: `Card` хранит невладеющий указатель `Account*`.
-- **Агрегация**: `Client` хранит `std::vector<std::shared_ptr<Account>>`, счета создаются отдельно.
-- **Композиция**:
-  - `Bank` содержит `CommissionCalculator` как поле.
-  - `Bank` содержит `std::vector<Department>` по значению.
-  - `Account` содержит историю `std::vector<Transaction>` по значению.
-- **Делегирование**: `Bank::transfer(...)` делегирует расчет комиссии объекту `CommissionCalculator`.
+- **Ассоциация**: `Card` хранит `Account*`.
+- **Агрегация**: `Client` хранит `std::vector<Account*>`.
+- **Композиция**: `Bank` содержит `Department` и `CommissionCalculator`; `Account` содержит `Transaction`.
+- **Делегирование**: `Bank::transfer` делегирует расчет комиссии `CommissionCalculator`.
 
-## Что умеет программа
-- Создавать клиентов и счета разных типов.
-- Пополнять счет и снимать средства.
-- Выполнять перевод между счетами с комиссией.
-- Вести историю транзакций.
-- Демонстрировать работу карты, привязанной к счету.
-
-## Сборка и запуск
+## Сборка
 ```bash
-cmake -S . -B build
-cmake --build build
-./build/project_bank
+cmake -B build && cmake --build build && ./build/project_bank
 ```

@@ -1,25 +1,16 @@
 #include "Transaction.h"
 
-#include <chrono>
-#include <ctime>
-#include <iomanip>
 #include <sstream>
 
 int Transaction::nextId_ = 1;
 
-Transaction::Transaction(TransactionType type, double amount, std::string description)
-    : id_(nextId_++),
-      timestamp_(makeTimestamp()),
-      type_(type),
-      amount_(amount),
-      description_(std::move(description)) {}
+Transaction::Transaction(TransactionType type, double amount, const std::string& comment)
+    : id_(nextId_), type_(type), amount_(amount), comment_(comment) {
+    nextId_++;
+}
 
 int Transaction::getId() const {
     return id_;
-}
-
-const std::string& Transaction::getTimestamp() const {
-    return timestamp_;
 }
 
 TransactionType Transaction::getType() const {
@@ -30,51 +21,34 @@ double Transaction::getAmount() const {
     return amount_;
 }
 
-const std::string& Transaction::getDescription() const {
-    return description_;
+const std::string& Transaction::getComment() const {
+    return comment_;
 }
 
 std::string Transaction::toString() const {
     std::ostringstream out;
-    out << "#" << id_ << " [" << timestamp_ << "] " << typeToString(type_) << ": "
-        << std::fixed << std::setprecision(2) << amount_ << " RUB";
-
-    if (!description_.empty()) {
-        out << " (" << description_ << ")";
+    out << "#" << id_ << " " << typeToString(type_) << ": " << amount_ << " RUB";
+    if (!comment_.empty()) {
+        out << " (" << comment_ << ")";
     }
-
-    return out.str();
-}
-
-std::string Transaction::makeTimestamp() {
-    const auto now = std::chrono::system_clock::now();
-    const std::time_t time = std::chrono::system_clock::to_time_t(now);
-
-    std::tm localTm{};
-#if defined(_WIN32)
-    localtime_s(&localTm, &time);
-#else
-    localTm = *std::localtime(&time);
-#endif
-
-    std::ostringstream out;
-    out << std::put_time(&localTm, "%Y-%m-%d %H:%M:%S");
     return out.str();
 }
 
 std::string Transaction::typeToString(TransactionType type) {
-    switch (type) {
-    case TransactionType::Deposit:
+    if (type == TransactionType::Deposit) {
         return "Пополнение";
-    case TransactionType::Withdrawal:
+    }
+    if (type == TransactionType::Withdrawal) {
         return "Снятие";
-    case TransactionType::TransferIn:
-        return "Перевод входящий";
-    case TransactionType::TransferOut:
-        return "Перевод исходящий";
-    case TransactionType::Fee:
+    }
+    if (type == TransactionType::TransferIn) {
+        return "Входящий перевод";
+    }
+    if (type == TransactionType::TransferOut) {
+        return "Исходящий перевод";
+    }
+    if (type == TransactionType::Fee) {
         return "Комиссия";
     }
-
-    return "Неизвестно";
+    return "Операция";
 }

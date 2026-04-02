@@ -1,7 +1,7 @@
 #include "Department.h"
 
-Department::Department(std::string name, std::string address)
-    : name_(std::move(name)), address_(std::move(address)) {}
+Department::Department(const std::string& name, const std::string& address)
+    : name_(name), address_(address) {}
 
 const std::string& Department::getName() const {
     return name_;

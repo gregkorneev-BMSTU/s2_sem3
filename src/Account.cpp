@@ -1,16 +1,14 @@
 #include "Account.h"
 
-#include <sstream>
-
-Account::Account(std::string number, std::string ownerName, double openingBalance)
-    : accountNumber_(std::move(number)), ownerName_(std::move(ownerName)), balance_(openingBalance) {
-    if (openingBalance > 0.0) {
-        addTransaction(TransactionType::Deposit, openingBalance, "Начальное пополнение");
+Account::Account(const std::string& number, const std::string& ownerName, double startBalance)
+    : number_(number), ownerName_(ownerName), balance_(startBalance) {
+    if (startBalance > 0) {
+        addTransaction(TransactionType::Deposit, startBalance, "Начальный баланс");
     }
 }
 
 const std::string& Account::getNumber() const {
-    return accountNumber_;
+    return number_;
 }
 
 const std::string& Account::getOwnerName() const {
@@ -21,61 +19,55 @@ double Account::getBalance() const {
     return balance_;
 }
 
+bool Account::deposit(double amount, const std::string& comment) {
+    if (amount <= 0) {
+        return false;
+    }
+    balance_ += amount;
+    addTransaction(TransactionType::Deposit, amount, comment);
+    return true;
+}
+
+bool Account::withdraw(double amount, const std::string& comment) {
+    if (amount <= 0 || !canWithdraw(amount)) {
+        return false;
+    }
+    balance_ -= amount;
+    addTransaction(TransactionType::Withdrawal, amount, comment);
+    return true;
+}
+
 bool Account::canDebit(double amount) const {
     return canWithdraw(amount);
 }
 
-bool Account::deposit(double amount, const std::string& description) {
-    if (amount <= 0.0) {
+bool Account::chargeFee(double fee, const std::string& reason) {
+    if (fee <= 0) {
+        return true;
+    }
+    if (!canWithdraw(fee)) {
         return false;
     }
-
-    balance_ += amount;
-    addTransaction(TransactionType::Deposit, amount, description);
-    return true;
-}
-
-bool Account::withdraw(double amount, const std::string& description) {
-    if (amount <= 0.0 || !canWithdraw(amount)) {
-        return false;
-    }
-
-    balance_ -= amount;
-    addTransaction(TransactionType::Withdrawal, amount, description);
+    balance_ -= fee;
+    addTransaction(TransactionType::Fee, fee, reason);
     return true;
 }
 
 bool Account::transferOut(double amount, const std::string& toAccountNumber) {
-    if (amount <= 0.0 || !canWithdraw(amount)) {
+    if (amount <= 0 || !canWithdraw(amount)) {
         return false;
     }
-
     balance_ -= amount;
     addTransaction(TransactionType::TransferOut, amount, "На счет " + toAccountNumber);
     return true;
 }
 
 void Account::transferIn(double amount, const std::string& fromAccountNumber) {
-    if (amount <= 0.0) {
+    if (amount <= 0) {
         return;
     }
-
     balance_ += amount;
     addTransaction(TransactionType::TransferIn, amount, "Со счета " + fromAccountNumber);
-}
-
-bool Account::chargeFee(double fee, const std::string& reason) {
-    if (fee <= 0.0) {
-        return true;
-    }
-
-    if (!canWithdraw(fee)) {
-        return false;
-    }
-
-    balance_ -= fee;
-    addTransaction(TransactionType::Fee, fee, reason);
-    return true;
 }
 
 const std::vector<Transaction>& Account::getHistory() const {
@@ -83,9 +75,9 @@ const std::vector<Transaction>& Account::getHistory() const {
 }
 
 bool Account::canWithdraw(double amount) const {
-    return amount >= 0.0 && balance_ >= amount;
+    return amount >= 0 && balance_ >= amount;
 }
 
-void Account::addTransaction(TransactionType type, double amount, const std::string& description) {
-    history_.emplace_back(type, amount, description);
+void Account::addTransaction(TransactionType type, double amount, const std::string& comment) {
+    history_.push_back(Transaction(type, amount, comment));
 }
