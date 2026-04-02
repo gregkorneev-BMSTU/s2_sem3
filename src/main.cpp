@@ -1,8 +1,9 @@
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
-#include <sstream>
+
 #include "Account.h"
 #include "Bank.h"
 #include "Card.h"
@@ -10,7 +11,6 @@
 #include "CreditAccount.h"
 #include "DepositAccount.h"
 #include "SavingsAccount.h"
-
 
 namespace {
 
@@ -27,67 +27,45 @@ std::string formatMoney(double value) {
     return out.str();
 }
 
-void printLine(char ch = '=', int width = 72) {
+void printLine(char ch = '=', int width = 80) {
     for (int i = 0; i < width; i++) {
         std::cout << ch;
     }
     std::cout << '\n';
 }
 
+void printCentered(const std::string& text, int width = 80) {
+    int padding = static_cast<int>((width - static_cast<int>(text.size())) / 2);
+    if (padding < 0) {
+        padding = 0;
+    }
+    std::cout << std::string(padding, ' ') << text << '\n';
+}
+
 void printSection(const std::string& title) {
-    std::cout << '\n'
-              << CYAN << BOLD;
+    std::cout << '\n' << CYAN << BOLD;
     printLine('=');
-    std::cout << title << '\n';
+    printCentered(title);
     printLine('=');
     std::cout << RESET;
 }
 
 void printSubsection(const std::string& title) {
-    std::cout << '\n'
-              << YELLOW << BOLD << title << RESET << '\n';
+    std::cout << '\n' << YELLOW << BOLD << title << RESET << '\n';
     printLine('-');
 }
 
-void printAccountCard(const Account& account) {
-    printLine('-');
-    std::cout << std::left
-              << std::setw(14) << "Тип:"      << account.getType() << '\n'
-              << std::setw(14) << "Номер:"    << account.getNumber() << '\n'
-              << std::setw(14) << "Владелец:" << account.getOwnerName() << '\n'
-              << std::setw(14) << "Баланс:"   << formatMoney(account.getBalance()) << '\n';
-    printLine('-');
-}
-
-void printDepartments(const Bank& bank) {
-    const std::vector<Department>& deps = bank.getDepartments();
-
-    std::cout << std::left
-              << std::setw(5)  << "№"
-              << std::setw(25) << "Отделение"
-              << std::setw(35) << "Адрес"
-              << '\n';
-    printLine('-');
-
-    for (std::size_t i = 0; i < deps.size(); i++) {
-        std::cout << std::left
-                  << std::setw(5)  << (i + 1)
-                  << std::setw(25) << deps[i].getName()
-                  << std::setw(35) << deps[i].getAddress()
-                  << '\n';
+std::string accountTypeToText(const Account& account) {
+    if (account.getType() == "SavingsAccount") {
+        return "Сберегательный счет";
     }
-}
-
-void printOperationResult(const std::string& text, bool success) {
-    std::cout << std::left << std::setw(52) << text;
-
-    if (success) {
-        std::cout << GREEN << "[OK]" << RESET;
-    } else {
-        std::cout << RED << "[ERROR]" << RESET;
+    if (account.getType() == "CreditAccount") {
+        return "Кредитный счет";
     }
-
-    std::cout << '\n';
+    if (account.getType() == "DepositAccount") {
+        return "Депозитный счет";
+    }
+    return account.getType();
 }
 
 std::string transactionTypeToText(TransactionType type) {
@@ -109,6 +87,64 @@ std::string transactionTypeToText(TransactionType type) {
     return "Операция";
 }
 
+void printInfo(const std::string& text) {
+    std::cout << YELLOW << "[INFO]" << RESET << " " << text << '\n';
+}
+
+void printAccountCard(const Account& account) {
+    printLine('-');
+    std::cout << std::left
+              << std::setw(14) << "Тип:"      << accountTypeToText(account) << '\n'
+              << std::setw(14) << "Номер:"    << account.getNumber() << '\n'
+              << std::setw(14) << "Владелец:" << account.getOwnerName() << '\n'
+              << std::setw(14) << "Баланс:"   << formatMoney(account.getBalance()) << '\n';
+    printLine('-');
+}
+
+void printDepartments(const Bank& bank) {
+    const std::vector<Department>& deps = bank.getDepartments();
+
+    std::cout << std::left
+              << std::setw(5)  << "№"
+              << std::setw(20) << "Отделение"
+              << std::setw(50) << "Адрес"
+              << '\n';
+    printLine('-');
+
+    for (std::size_t i = 0; i < deps.size(); i++) {
+        std::cout << std::left
+                  << std::setw(5)  << (i + 1)
+                  << std::setw(20) << deps[i].getName()
+                  << std::setw(50) << deps[i].getAddress()
+                  << '\n';
+    }
+}
+
+void printOperationResult(const std::string& icon,
+                          const std::string& text,
+                          bool success) {
+    std::string fullText = icon + " " + text;
+    std::cout << std::left << std::setw(62) << fullText << ' ';
+
+    if (success) {
+        std::cout << GREEN << "[OK]" << RESET;
+    } else {
+        std::cout << RED << "[ERROR]" << RESET;
+    }
+
+    std::cout << '\n';
+}
+
+void printClientSummary(const Client& client) {
+    printLine('-');
+    std::cout << std::left
+              << std::setw(14) << "Клиент:" << client.getFullName() << '\n'
+              << std::setw(14) << "ID:"     << client.getId() << '\n'
+              << std::setw(14) << "Счетов:" << client.getAccounts().size() << '\n'
+              << std::setw(14) << "Итого:"  << formatMoney(client.totalBalance()) << '\n';
+    printLine('-');
+}
+
 void printHistoryTable(const Account& account) {
     printSubsection("История счета " + account.getNumber());
 
@@ -121,9 +157,9 @@ void printHistoryTable(const Account& account) {
 
     std::cout << std::left
               << std::setw(6)  << "ID"
-              << std::setw(22) << "Тип"
-              << std::setw(14) << "Сумма"
-              << std::setw(28) << "Комментарий"
+              << std::setw(25) << "Тип"
+              << std::setw(16) << "Сумма"
+              << std::setw(33) << "Комментарий"
               << '\n';
     printLine('-');
 
@@ -132,27 +168,17 @@ void printHistoryTable(const Account& account) {
 
         std::cout << std::left
                   << std::setw(6)  << tx.getId()
-                  << std::setw(22) << transactionTypeToText(tx.getType())
-                  << std::setw(14) << formatMoney(tx.getAmount())
-                  << std::setw(28) << tx.getComment()
+                  << std::setw(25) << transactionTypeToText(tx.getType())
+                  << std::setw(16) << formatMoney(tx.getAmount())
+                  << std::setw(33) << tx.getComment()
                   << '\n';
     }
-}
-
-void printClientSummary(const Client& client) {
-    printLine('-');
-    std::cout << std::left
-              << std::setw(14) << "Клиент:"   << client.getFullName() << '\n'
-              << std::setw(14) << "ID:"       << client.getId() << '\n'
-              << std::setw(14) << "Счетов:"   << client.getAccounts().size() << '\n'
-              << std::setw(14) << "Итого:"    << formatMoney(client.totalBalance()) << '\n';
-    printLine('-');
 }
 
 } // namespace
 
 int main() {
-    printSection("УЧЕБНЫЙ ПРОЕКТ: БАНКОВСКАЯ СИСТЕМА (ВАРИАНТ 15)");
+    printSection("БАНКОВСКАЯ СИСТЕМА (ВАРИАНТ 15)");
 
     Bank bank("BMSTU Bank");
     bank.addDepartment("Центральное", "Москва, ул. Бауманская, 5");
@@ -183,29 +209,28 @@ int main() {
     printAccountCard(aliceDeposit);
 
     printSection("3. ВЫПОЛНЕНИЕ ОПЕРАЦИЙ");
-    printOperationResult("Оплата картой 1500 RUB (магазин: Книжный)",
+    printOperationResult("💳", "Оплата картой 1500 RUB (магазин: Книжный)",
                          aliceCard.pay(1500, "Книжный"));
 
-    printOperationResult("Пополнение Savings на 3000 RUB",
+    printOperationResult("💰", "Пополнение Savings на 3000 RUB",
                          aliceSavings.deposit(3000, "Внесение наличных"));
 
-    printOperationResult("Снятие с Credit 20000 RUB",
+    printOperationResult("💸", "Снятие с Credit 20000 RUB",
                          bobCredit.withdraw(20000, "Покупка техники"));
 
-    printOperationResult("Попытка снять с Deposit 1000 RUB до разблокировки",
+    printOperationResult("⛔", "Попытка снять с Deposit 1000 RUB до разблокировки",
                          aliceDeposit.withdraw(1000, "Попытка досрочного снятия"));
 
     aliceDeposit.unlock();
 
-    printOperationResult("Снятие с Deposit 1000 RUB после разблокировки",
+    printOperationResult("🔓", "Снятие с Deposit 1000 RUB после разблокировки",
                          aliceDeposit.withdraw(1000, "Снятие после разблокировки"));
 
-    printOperationResult("Перевод 5000 RUB со Savings на Credit",
+    printOperationResult("🔄", "Перевод 5000 RUB со Savings на Credit",
                          bank.transfer(aliceSavings, bobCredit, 5000));
 
     aliceSavings.addMonthlyInterest();
-    std::cout << GREEN << "[INFO]" << RESET
-              << " На сберегательный счет начислены месячные проценты.\n";
+    printInfo("На сберегательный счет начислены месячные проценты.");
 
     printSection("4. ИТОГОВОЕ СОСТОЯНИЕ СЧЕТОВ");
     printAccountCard(aliceSavings);
@@ -220,6 +245,11 @@ int main() {
     printHistoryTable(aliceSavings);
     printHistoryTable(bobCredit);
     printHistoryTable(aliceDeposit);
+
+    printSection("7. ИТОГ ПО БАНКУ");
+    double totalBankBalance = alice.totalBalance() + bob.totalBalance();
+    std::cout << BOLD << "Общий баланс по всем клиентам: " << RESET
+              << formatMoney(totalBankBalance) << '\n';
 
     printSection("РАБОТА ПРОГРАММЫ ЗАВЕРШЕНА");
     return 0;
